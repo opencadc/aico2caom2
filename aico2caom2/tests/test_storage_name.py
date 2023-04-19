@@ -3,7 +3,7 @@
 # ******************  CANADIAN ASTRONOMY DATA CENTRE  *******************
 # *************  CENTRE CANADIEN DE DONNÉES ASTRONOMIQUES  **************
 #
-#  (c) 2019.                            (c) 2019.
+#  (c) 2023.                            (c) 2023.
 #  Government of Canada                 Gouvernement du Canada
 #  National Research Council            Conseil national de recherches
 #  Ottawa, Canada, K1A 0R6              Ottawa, Canada, K1A 0R6
@@ -67,62 +67,27 @@
 # ***********************************************************************
 #
 
-"""
-Implements the default entry point functions for the workflow 
-application.
-
-'run' executes based on either provided lists of work, or files on disk.
-'run_incremental' executes incrementally, usually based on time-boxed intervals.
-"""
-
-import logging
-import sys
-import traceback
-
-from caom2pipe.run_composable import run_by_state, run_by_todo
-from blank2caom2 import fits2caom2_augmentation
+from caom2pipe import manage_composable as mc
+from aico2caom2 import AicoName
 
 
-BLANK_BOOKMARK = 'blank_bookmark'
-META_VISITORS = [fits2caom2_augmentation]
-DATA_VISITORS = []
+def test_is_valid():
+    assert AicoName('anything').is_valid()
+    
 
+def test_storage_name(test_config):
+    test_obs_id = 'TEST_OBS_ID'
+    test_f_name = f'{test_obs_id}.fits'
+    test_uri = f'{test_config.scheme}:{test_config.collection}/{test_f_name}'
+    for entry in [
+        test_f_name,
+        test_uri,
+        f'https://localhost:8020/{test_f_name}',
+        f'vos:goliaths/test/{test_f_name}',
+    ]:
+        test_subject = AicoName(entry)
+        assert test_subject.obs_id == test_obs_id, 'wrong obs id'
+        assert test_subject.product_id == test_obs_id, 'wrong product id'
+        assert test_subject.source_names == [entry], 'wrong source names'
+        assert test_subject.destination_uris == [test_uri], f'wrong uris {test_subject}'
 
-def _run():
-    """
-    Uses a todo file to identify the work to be done.
-
-    :return 0 if successful, -1 if there's any sort of failure. Return status
-        is used by airflow for task instance management and reporting.
-    """
-    return run_by_todo( meta_visitors=META_VISITORS, data_visitors=DATA_VISITORS)
-
-
-def run():
-    """Wraps _run in exception handling, with sys.exit calls."""
-    try:
-        result = _run()
-        sys.exit(result)
-    except Exception as e:
-        logging.error(e)
-        tb = traceback.format_exc()
-        logging.debug(tb)
-        sys.exit(-1)
-
-
-def _run_incremental():
-    """Uses a state file with a timestamp to identify the work to be done.
-    """
-    return run_by_state( bookmark_name=BLANK_BOOKMARK, meta_visitors=META_VISITORS, data_visitors=DATA_VISITORS)
-
-
-def run_incremental():
-    """Wraps _run_incremental in exception handling."""
-    try:
-        _run_incremental()
-        sys.exit(0)
-    except Exception as e:
-        logging.error(e)
-        tb = traceback.format_exc()
-        logging.debug(tb)
-        sys.exit(-1)

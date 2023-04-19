@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
 # ***********************************************************************
 # ******************  CANADIAN ASTRONOMY DATA CENTRE  *******************
 # *************  CENTRE CANADIEN DE DONNÉES ASTRONOMIQUES  **************
 #
-#  (c) 2020.                            (c) 2020.
+#  (c) 2023.                            (c) 2023.
 #  Government of Canada                 Gouvernement du Canada
 #  National Research Council            Conseil national de recherches
 #  Ottawa, Canada, K1A 0R6              Ottawa, Canada, K1A 0R6
@@ -62,62 +61,26 @@
 #  <http://www.gnu.org/licenses/>.      pas le cas, consultez :
 #                                       <http://www.gnu.org/licenses/>.
 #
-#  $Revision: 4 $
+#  : 4 $
 #
 # ***********************************************************************
 #
 
-"""
-This module implements the ObsBlueprint mapping, as well as the workflow 
-entry point that executes the workflow.
-"""
-
-from os.path import basename
 
 from caom2pipe import caom_composable as cc
-from caom2pipe import manage_composable as mc
+from aico2caom2 import main_app
 
 
-__all__ = [
-    'BlankMapping',
-    'BlankName',
-]
+__all__ = ['AicoFits2caom2Visitor']
 
 
-class BlankName(mc.StorageName):
-    """Naming rules:
-    - support mixed-case file name storage, and mixed-case obs id values
-    - support uncompressed files in storage
-    """
+class AicoFits2caom2Visitor(cc.Fits2caom2Visitor):
+    def __init__(self, observation, **kwargs):
+        super().__init__(observation, **kwargs)
 
-    BLANK_NAME_PATTERN = '*'
-
-    def __init__(self, entry):
-        super(BlankName, self).__init__(file_name=basename(entry), source_names=[entry])
-
-    def is_valid(self):
-        return True
+    def _get_mapping(self, headers):
+        return main_app.aicoMapping(self._storage_name, headers, self._clients)
 
 
-class BlankMapping(cc.TelescopeMapping):
-    def __init__(self, storage_name, headers, clients):
-        super().__init__(storage_name, headers, clients)
-
-    def accumulate_blueprint(self, bp):
-        """Configure the telescope-specific ObsBlueprint at the CAOM model
-        Observation level."""
-        self._logger.debug('Begin accumulate_bp.')
-        super().accumulate_blueprint(bp)
-        bp.configure_position_axes((1, 2))
-        bp.configure_time_axis(3)
-        bp.configure_energy_axis(4)
-        bp.configure_polarization_axis(5)
-        bp.configure_observable_axis(6)
-        self._logger.debug('Done accumulate_bp.')
-
-    def update(self, observation, file_info):
-        """Called to fill multiple CAOM model elements and/or attributes
-        (an n:n relationship between TDM attributes and CAOM attributes).
-        """
-        super().update(observation, file_info)
-        return observation
+def visit(observation, **kwargs):
+    return AicoFits2caom2Visitor(observation, **kwargs).visit()
