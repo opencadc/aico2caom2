@@ -67,12 +67,11 @@
 # ***********************************************************************
 #
 
-from caom2pipe import manage_composable as mc
-from aico2caom2 import AicoName
+from aico2caom2 import AICOName
 
 
 def test_is_valid():
-    assert AicoName('anything').is_valid()
+    assert AICOName('anything').is_valid()
     
 
 def test_storage_name(test_config):
@@ -85,7 +84,7 @@ def test_storage_name(test_config):
         f'https://localhost:8020/{test_f_name}',
         f'vos:goliaths/test/{test_f_name}',
     ]:
-        test_subject = AicoName(entry)
+        test_subject = AICOName(entry)
         assert test_subject.obs_id == test_obs_id, 'wrong obs id'
         assert test_subject.product_id == test_obs_id, 'wrong product id'
         assert test_subject.source_names == [entry], 'wrong source names'

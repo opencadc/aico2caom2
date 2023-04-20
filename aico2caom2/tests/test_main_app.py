@@ -89,9 +89,9 @@ def pytest_generate_tests(metafunc):
 
 
 @patch('caom2utils.data_util.get_local_headers_from_fits')
-def test_main_app(header_mock, test_name):
+def test_main_app(header_mock, test_config, test_name):
     header_mock.side_effect = ac.make_headers_from_file
-    storage_name = main_app.AicoName(entry=test_name)
+    storage_name = main_app.AICOName(entry=test_name)
     metadata_reader = rdc.FileMetadataReader()
     metadata_reader.set(storage_name)
     file_type = 'application/fits'
@@ -100,7 +100,7 @@ def test_main_app(header_mock, test_name):
         'storage_name': storage_name,
         'metadata_reader': metadata_reader,
     }
-    expected_fqn = f'{TEST_DATA_DIR}/{test_name}.expected.xml'
+    expected_fqn = f'{test_name.replace(".fits.header", "")}.expected.xml'
     expected = mc.read_obs_from_file(expected_fqn)
     in_fqn = expected_fqn.replace('.expected', '.in')
     actual_fqn = expected_fqn.replace('expected', 'actual')
@@ -109,11 +109,12 @@ def test_main_app(header_mock, test_name):
     observation = None
     if os.path.exists(in_fqn):
         observation = mc.read_obs_from_file(in_fqn)
-    observation = fits2caom2_augmentation.visit(observation, **kwargs)
     try:
+        observation = fits2caom2_augmentation.visit(observation, **kwargs)
         compare_result = get_differences(expected, observation)
     except Exception as e:
-        mc.write_obs_to_file(observation, actual_fqn)
+        if observation is not None:
+            mc.write_obs_to_file(observation, actual_fqn)
         raise e
     if compare_result is not None:
         mc.write_obs_to_file(observation, actual_fqn)
