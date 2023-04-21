@@ -1,7 +1,7 @@
 #!/bin/bash
 
 COLLECTION="aico"
-IMAGE="opencadc/${COLLECTION}2caom2"
+IMAGE="aico2caom2_app"
 
 echo "Get a proxy certificate"
 cp $HOME/.ssl/cadcproxy.pem ./ || exit $?
