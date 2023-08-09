@@ -1,13 +1,24 @@
 # aico2caom2
-Application to generate CAOM2 Observations from Allen I Carswell Observatory (AICO) files.
+A Docker image containing the tools to update and archive files, and to generate CAOM2 Observations from Allen I Carswell Observatory (AICO).
+
+# Table of contents
+1. [Set Up (One Time Only)](#set_up)
+    1. [Build the Image](#build)
+    1. [Credentials](#creds)
+    1. [File Location](#working_dir)
+1. [Initialize Workspace (One Time Only)](#initialize)
+1. [Prepare Sky Camera Images](#prepare_sky)
+1. [Ingest Sky Camera Images](#aico_run)
+1. [Debugging](#debugging)
+
 
 # How To Use aico2caom2
 
 These are Linux-centric instructions.
 
-## Set Up
+# Set Up (one time only) <a name="set_up"></a>
 
-### Docker Image
+## Docker Image <a name="build"></a>
 
 In an empty directory (the 'working directory'), on a machine with Docker installed:
 
@@ -19,17 +30,17 @@ In an empty directory (the 'working directory'), on a machine with Docker instal
    docker build -f Dockerfile -t aico2caom2_app ./
    ```
 
-### Credentials
+## Credentials <a name="creds"></a>
 
 1. Run the following command to create a proxy certificate file in the working directory. You will be prompted for the password, unless you have an appropriately configured `.netrc` file:
 
    ```
-   docker run --rm -ti -v ${PWD}:/usr/src/app aico2caom2_app cadc-get-cert --cert-filename /usr/src/app/cadcproxy.pem --days-valid 10 -u <CADC User Name here>
+   docker run --rm -ti --user $(id -u):$(id -g) -e HOME=/usr/src/app -v ${PWD}:/usr/src/app aico2caom2_app cadc-get-cert --cert-filename /usr/src/app/cadcproxy.pem --days-valid 10 -u <CADC User Name here>
    ```
 
 1. The `aico_run*.sh` scripts described later will attempt to copy `$HOME/.ssl/cadcproxy.pem` to the 'working directory'. Copy `cadcproxy.pem` to `$HOME/.ssl/`. The proxy certificate file will be valid for 10 days, and must be periodically renewed.
 
-### File Location
+## File Location <a name="working_dir"></a>
 
 `aico2caom2` can store files from local disk to CADC storage. This behaviour is controlled by configuration
 information. Most of the `config.yml` values are already set appropriately, but there are a few values that need to be
@@ -53,7 +64,7 @@ https://github.com/opencadc/collection2caom2/wiki/config.yml.
       checks that the local version of the file has a md5 checksum that is different from the file at CADC before transferring the file to CADC storage. This affects only the `store` `task_types`.
 
 
-## Initialize Execution Location (one time only)
+# Initialize Execution Location (one time only) <a name="initialize"></a>
 
 1. In the main branch of this repository, find the scripts directory, and copy the files `aico_run.sh`  and `aico_run_incremental.sh` to the working directory. e.g.:
 
@@ -73,13 +84,28 @@ https://github.com/opencadc/collection2caom2/wiki/config.yml.
 
    1. `aico_run.sh`:
       1. Find this line: `docker run --rm --name ${COLLECTION}_todo  --user $(id -u):$(id -g) -e HOME=/usr/src/app -v ${PWD}:/usr/src/app/ -v /data:/data ${IMAGE} ${COLLECTION}_run || exit $?`
-      2. Replace the `/data/:` portion of the command with the fully-qualified directory name of where the application should find the data.
+      2. Replace the `/data/:` portion of the command with the fully-qualified directory name of where the application should find the data. This directory will be called the "data source directory" in these instructions. 
 
    1. `aico_run_incremental.sh`:
       1. Find this line: `docker run --rm --name ${COLLECTION}_state  --user $(id -u):$(id -g) -e HOME=/usr/src/app -v ${PWD}:/usr/src/app/ -v /data:/data ${IMAGE} ${COLLECTION}_run_incremental || exit $?`
       2. Replace the `/data/:` portion of the command with the fully-qualified directory name of where the application should find the data.
 
-## Execution
+# How To Prepare AICO Sky Camera Images for CADC Ingestion <a name="prepare_sky"></a>
+
+FITS files archived at CADC are checked with `fitsverify` before being stored. This step will update FITS file headers in a file so that the keyword value pairs conform to the `fitsverify` check.
+
+1. The data source directory needs to be on a machine with access to Sky Camera Images, and enough disk space to make a copy of the files to be archived. 
+
+1. On a machine with write access to the data source directory, run this:
+
+   ```
+   docker run --rm -ti --user $(id -u):$(id -g) -e HOME=/usr/src/app -v ${PWD}:/usr/src/app -v <data source directory>:/data aico2caom2_app python aico_weathercaom.py /data/<file name>
+   ```
+
+The `<file name.fits>` in the data source directory will be copied to `<file name_v.fits>`. The `<file name_v.fits>` is the file to be archived at CADC.
+
+
+# How to Store Files and Create CAOM2 Records at CADC <a name="aico_run"></a>
 
 `aicocaom2` may be run so that it processes files incrementally, according to their timestamp on disk, or so that is processes all the files it finds.
 
@@ -96,7 +122,7 @@ https://github.com/opencadc/collection2caom2/wiki/config.yml.
     ./aico_run.sh
     ```
 
-## Debugging
+# Debugging <a name="debugging"></a>
 
 1. To debug the application from inside the container, run the following command. Replace the `<data directory here>` with the fully-qualified path name of the directory where the data to be processed is located.
 

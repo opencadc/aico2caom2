@@ -101,7 +101,6 @@ def test_main_app(header_mock, test_config, test_name):
         'metadata_reader': metadata_reader,
     }
     expected_fqn = f'{test_name.replace(".fits.header", "")}.expected.xml'
-    expected = mc.read_obs_from_file(expected_fqn)
     in_fqn = expected_fqn.replace('.expected', '.in')
     actual_fqn = expected_fqn.replace('expected', 'actual')
     if os.path.exists(actual_fqn):
@@ -111,9 +110,12 @@ def test_main_app(header_mock, test_config, test_name):
         observation = mc.read_obs_from_file(in_fqn)
     try:
         observation = fits2caom2_augmentation.visit(observation, **kwargs)
+        expected = mc.read_obs_from_file(expected_fqn)
         compare_result = get_differences(expected, observation)
     except Exception as e:
-        if observation is not None:
+        if observation is None:
+            print('No Observation to store.')
+        else:
             mc.write_obs_to_file(observation, actual_fqn)
         raise e
     if compare_result is not None:

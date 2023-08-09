@@ -83,10 +83,11 @@ def test_storage_name(test_config):
         test_uri,
         f'https://localhost:8020/{test_f_name}',
         f'vos:goliaths/test/{test_f_name}',
+        f'/tmp/{test_f_name}',
     ]:
         test_subject = AICOName(entry)
         assert test_subject.obs_id == test_obs_id, 'wrong obs id'
         assert test_subject.product_id == test_obs_id, 'wrong product id'
         assert test_subject.source_names == [entry], 'wrong source names'
         assert test_subject.destination_uris == [test_uri], f'wrong uris {test_subject}'
-
+        assert test_subject.file_uri == test_uri, 'wrong file uri'

@@ -79,13 +79,14 @@ import logging
 import sys
 import traceback
 
+from caom2pipe.name_builder_composable import EntryBuilder
 from caom2pipe.run_composable import run_by_state, run_by_todo
-from aico2caom2 import fits2caom2_augmentation
+from aico2caom2 import fits2caom2_augmentation, main_app, preview_augmentation
 
 
 AICO_BOOKMARK = 'aico_bookmark'
 META_VISITORS = [fits2caom2_augmentation]
-DATA_VISITORS = []
+DATA_VISITORS = [preview_augmentation]
 
 
 def _run():
@@ -95,7 +96,9 @@ def _run():
     :return 0 if successful, -1 if there's any sort of failure. Return status
         is used by airflow for task instance management and reporting.
     """
-    return run_by_todo( meta_visitors=META_VISITORS, data_visitors=DATA_VISITORS)
+    return run_by_todo(
+        name_builder=EntryBuilder(main_app.AICOName), meta_visitors=META_VISITORS, data_visitors=DATA_VISITORS
+    )
 
 
 def run():
@@ -113,7 +116,9 @@ def run():
 def _run_incremental():
     """Uses a state file with a timestamp to identify the work to be done.
     """
-    return run_by_state( bookmark_name=AICO_BOOKMARK, meta_visitors=META_VISITORS, data_visitors=DATA_VISITORS)
+    return run_by_state(
+        name_builder=EntryBuilder(main_app.AICOName), meta_visitors=META_VISITORS, data_visitors=DATA_VISITORS
+    )
 
 
 def run_incremental():

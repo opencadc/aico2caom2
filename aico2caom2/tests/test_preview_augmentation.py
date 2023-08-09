@@ -65,32 +65,45 @@
 #  $Revision: 4 $
 #
 # ***********************************************************************
-#
 
-from os.path import dirname, join, realpath
-from caom2pipe.manage_composable import Config, StorageName
-import pytest
+import glob
+import os
 
-COLLECTION = 'AICO'
-SCHEME = 'cadc'
-PREVIEW_SCHEME = 'cadc'
+from caom2pipe import manage_composable as mc
+from aico2caom2 import preview_augmentation, main_app
 
+TEST_FILES_DIR = '/test_files'
 
-@pytest.fixture()
-def test_config():
-    config = Config()
-    config.collection = COLLECTION
-    config.preview_scheme = PREVIEW_SCHEME
-    config.scheme = SCHEME
-    config.logging_level = 'INFO'
-    StorageName.collection = config.collection
-    StorageName.preview_scheme = config.preview_scheme
-    StorageName.scheme = config.scheme
-    return config
+def test_visit(test_data_dir, test_config, tmp_path):
 
+    # this should result in two new artifacts being added to every plane:
+    # one for a thumbnail and one for preview
 
-@pytest.fixture()
-def test_data_dir():
-    this_dir = dirname(realpath(__file__))
-    fqn = join(this_dir, 'data')
-    return fqn
+    test_config.rejected_fqn = f'{tmp_path}/{test_config.rejected_file_name}'
+    test_observable = mc.Observable(test_config)
+
+    test_files = {
+        '2023_07_04__17_09_43-raw_v.expected.xml': [ '2023_07_04__17_09_43-raw_v.fits'],
+    }
+
+    kwargs = {
+        'working_directory': TEST_FILES_DIR,
+        'cadc_client': None,
+        'observable': test_observable,
+    }
+
+    for entry in glob.glob(f'{TEST_FILES_DIR}/*.png'):
+        os.unlink(entry)
+
+    for key, value in test_files.items():
+        obs = mc.read_obs_from_file(f'{test_data_dir}/{key}')
+        for f_name in value:
+            test_name = main_app.AICOName(f_name)
+            kwargs['storage_name'] = test_name
+            try:
+                ignore = preview_augmentation.visit(obs, **kwargs)
+                f_name_list = [test_name.prev_uri, test_name.thumb_uri]
+                for p in f_name_list:
+                    assert p in obs.planes[test_name.product_id].artifacts.keys(), f'missing {p}'
+            except Exception as e:
+                assert False, f'key {key} value {value} f_name {f_name} {str(e)}'
