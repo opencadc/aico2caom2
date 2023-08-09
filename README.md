@@ -99,11 +99,12 @@ FITS files archived at CADC are checked with `fitsverify` before being stored. T
 1. On a machine with write access to the data source directory, run this:
 
    ```
-   docker run --rm -ti --user $(id -u):$(id -g) -e HOME=/usr/src/app -v ${PWD}:/usr/src/app -v <data source directory>:/data aico2caom2_app python aico_weathercaom.py /data/<file name>
+   docker run --rm -ti --user $(id -u):$(id -g) -e HOME=/usr/src/app -v ${PWD}:/usr/src/app -v <data source directory>:/data aico2caom2_app python /usr/local/bin/aico_weathercam.py /data/<file name>
    ```
 
 The `<file name.fits>` in the data source directory will be copied to `<file name_v.fits>`. The `<file name_v.fits>` is the file to be archived at CADC.
 
+Prepared files should be stored in a separate location for the next step, as `aico2caom2` will try to process any files with a `.fits` extension.
 
 # How to Store Files and Create CAOM2 Records at CADC <a name="aico_run"></a>
 
