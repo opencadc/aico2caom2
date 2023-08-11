@@ -111,7 +111,7 @@ FITS files archived at CADC are checked with `fitsverify` before being stored. T
 1. On a machine with write access to the data source directory, run this:
 
    ```
-   docker run --rm -ti --user $(id -u):$(id -g) -e HOME=/usr/src/app -v ${PWD}:/usr/src/app -v <data source directory>:/data aico2caom2_app /bin/bash -c 'for ii in $(ls /data/*fits); do python /usr/local/bin/aico_weathercam.py /data/${ii}; done'
+   docker run --rm -ti --user $(id -u):$(id -g) -e HOME=/usr/src/app -v ${PWD}:/usr/src/app -v <data source directory>:/data aico2caom2_app /bin/bash -c 'for ii in $(ls /data/*fits); do python /usr/local/bin/aico_weathercam.py ${ii}; done'
    ```
 
 This will run the script `aico_weathercam.py` for each `<file_name.fits>` in `/data`.
