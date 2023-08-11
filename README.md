@@ -38,12 +38,21 @@ In an empty directory (the 'working directory'), on a machine with Docker instal
    docker run --rm -ti --user $(id -u):$(id -g) -e HOME=/usr/src/app -v ${PWD}:/usr/src/app aico2caom2_app cadc-get-cert --cert-filename /usr/src/app/cadcproxy.pem --days-valid 10 -u <CADC User Name here>
    ```
 
-1. The `aico_run*.sh` scripts described later will attempt to copy `$HOME/.ssl/cadcproxy.pem` to the 'working directory'. Copy `cadcproxy.pem` to `$HOME/.ssl/`. The proxy certificate file will be valid for 10 days, and must be periodically renewed.
+1. The `aico_run*.sh` scripts described later will attempt to copy `$HOME/.ssl/cadcproxy.pem` to the 'working directory', so copy `cadcproxy.pem` to `$HOME/.ssl/`. 
+
+1. The proxy certificate file will be valid for 10 days, and must be periodically renewed. At the moment, it is possible to use a [.netrc](https://www.gnu.org/software/inetutils/manual/html_node/The-_002enetrc-file.html) file and a cron job to automatically renew the certificate. Add something like the following to a crontab:
+
+   ```
+   0 0 * * *  docker run --rm -ti --user $(id -u):$(id -g) -e HOME=/usr/src/app -v ${PWD}:/usr/src/app aico2caom2_app cadc-get-cert -n -q --cert-filename /usr/src/app/cadcproxy.pem --days-valid=25 
+   ```
+
+   Modify the `aico_run*.sh` scripts to use the location of the renewed certificate file `cadcproxy.pem`.
+
 
 ## File Location <a name="working_dir"></a>
 
 `aico2caom2` can store files from local disk to CADC storage. This behaviour is controlled by configuration
-information. Most of the `config.yml` values are already set appropriately, but there are a few values that need to be
+information, located in a file named `config.yml`. Most of the `config.yml` values are already set appropriately, but there are a few values that need to be
 set according to the execution environment. For a complete description of the `config.yml` content, see
 https://github.com/opencadc/collection2caom2/wiki/config.yml.
 
@@ -54,8 +63,11 @@ https://github.com/opencadc/collection2caom2/wiki/config.yml.
    ```
 
 1. Tell `aico2caom2` in `config.yml` what to do with files on disk after the files have been stored to CADC:
-   1. Set `cleanup_files_when_storing` to `True` or `False`. If this is set to `False`, `aico2caom2` will do nothing with the files on disk.
-      If this is set to `True`, `aico2caom2` will move stored files to either a success or failure location.
+
+   1. Set `cleanup_files_when_storing` to `True` or `False`. 
+       1. If this is set to `False`, `aico2caom2` will do nothing with the files on disk.
+       1. If this is set to `True`, `aico2caom2` will move stored files to either a success or failure location.
+
    2. If `cleanup_files_when_storing` is set to `True`, set `cleanup_failure_destination`  and `cleanup_success_destination` to fully-qualified directory names that are visible within the Docker container. A directory is visible within a Docker container if it
       is one of the values on the right-hand-side of the colon in a `-v` `docker run` parameter.
 
@@ -99,10 +111,12 @@ FITS files archived at CADC are checked with `fitsverify` before being stored. T
 1. On a machine with write access to the data source directory, run this:
 
    ```
-   docker run --rm -ti --user $(id -u):$(id -g) -e HOME=/usr/src/app -v ${PWD}:/usr/src/app -v <data source directory>:/data aico2caom2_app python /usr/local/bin/aico_weathercam.py /data/<file name>
+   docker run --rm -ti --user $(id -u):$(id -g) -e HOME=/usr/src/app -v ${PWD}:/usr/src/app -v <data source directory>:/data aico2caom2_app /bin/bash -c 'for ii in $(ls /data/*fits); do python /usr/local/bin/aico_weathercam.py /data/${ii}; done'
    ```
 
-The `<file name.fits>` in the data source directory will be copied to `<file name_v.fits>`. The `<file name_v.fits>` is the file to be archived at CADC.
+This will run the script `aico_weathercam.py` for each `<file_name.fits>` in `/data`.
+
+All `<file name.fits>` in the data source directory will be copied to `<file name_v.fits>`. The `<file name_v.fits>` files should be archived at CADC.
 
 Prepared files should be stored in a separate location for the next step, as `aico2caom2` will try to process any files with a `.fits` extension.
 
