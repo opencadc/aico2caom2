@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # ***********************************************************************
 # ******************  CANADIAN ASTRONOMY DATA CENTRE  *******************
 # *************  CENTRE CANADIEN DE DONNÉES ASTRONOMIQUES  **************
@@ -68,7 +67,7 @@
 #
 
 """
-This module implements the ObsBlueprint mapping, as well as the workflow 
+This module implements the ObsBlueprint mapping, as well as the workflow
 entry point that executes the workflow.
 """
 
@@ -106,8 +105,8 @@ class AICOName(mc.StorageName):
 
 
 class AICOMapping(cc.TelescopeMapping):
-    def __init__(self, storage_name, headers, clients):
-        super().__init__(storage_name, headers, clients)
+    def __init__(self, storage_name, headers, clients, observable, observation, config):
+        super().__init__(storage_name, headers, clients, observable, observation, config)
 
     def accumulate_blueprint(self, bp):
         """Configure the telescope-specific ObsBlueprint at the CAOM model
@@ -116,58 +115,44 @@ class AICOMapping(cc.TelescopeMapping):
         super().accumulate_blueprint(bp)
         self._logger.debug('Done accumulate_bp.')
 
-    def update(self, observation, file_info):
+    def update(self, file_info):
         """Called to fill multiple CAOM model elements and/or attributes
         (an n:n relationship between TDM attributes and CAOM attributes).
         """
-        super().update(observation, file_info)
-        return observation
+        super().update(file_info)
+        return self._observation
+
+    def _update_artifact(self, artifact):
+        pass
 
 
 class SkyCam(cc.TelescopeMapping):
-    def __init__(self, storage_name, headers, clients):
-        super().__init__(storage_name, headers, clients)
+    def __init__(self, storage_name, headers, clients, observable, observation, config):
+        super().__init__(storage_name, headers, clients, observable, observation, config)
 
     def configure_axes(self, bp):
-        # DB - 10-07-20
-        # https://github.com/opencadc-metadata-curation/dao2caom2/issues/10
         bp.configure_time_axis(1)
-        bp.configure_observable_axis(2)
-        bp.configure_energy_axis(3)
 
     def accumulate_blueprint(self, bp):
         super().accumulate_blueprint(bp)
         self.configure_axes(bp)
-        bp.set('Observation.metaRelease', 'get_release_date()')
+        # bp.set('Observation.metaRelease', 'get_release_date()')
         bp.set('Observation.intent', ObservationIntentType.CALIBRATION)
-        bp.set('Observation.instrument.name', 'Sky Camera')
-        bp.set('Plane.calibrationLevel', 1)
-        bp.set('Plane.dataProductType', DataProductType.IMAGE)
-        bp.set('Plane.dataRelease', 'get_release_date()')
-        bp.set('Plane.metaRelease', 'get_release_date()')
-        bp.set('Plane.provenance.project', 'AICO Science Archive')
-        bp.set('Plane.provenance.producer', 'TODO')
-        bp.set('Plane.provenance.name', 'AICO Sky Camera image')
-        bp.set('Plane.provenance.reference', 'https://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/en/aico/')
-        bp.set('Artifact.productType', ProductType.CALIBRATION)
-        bp.set('Artifact.releaseType', 'data')
-
-        bp.set('Chunk.energy.axis.function.delta', 3000.0)
-        bp.set('Chunk.energy.axis.function.naxis', 1)
-        bp.set('Chunk.energy.axis.function.refCoord.pix', 0.5)
-        bp.set('Chunk.energy.axis.function.refCoord.val', 4000.0)
-        bp.set('Chunk.energy.resolvingPower', 5500.0 / 3000.0)
-
-        bp.add_attribute('Chunk.time.exposure', 'EXPTIME')
-        bp.add_attribute('Chunk.time.resolution', 'EXPTIME')
-
         bp.clear('Observation.algorithm.name')
-
-        bp.set('Observation.telescope.name', 'AICO SkyCam')
         bp.set('Observation.telescope.geoLocationX', 'get_geo_x()')
         bp.set('Observation.telescope.geoLocationY', 'get_geo_y()')
         bp.set('Observation.telescope.geoLocationZ', 'get_geo_z()')
 
+        bp.set('Plane.calibrationLevel', 1)
+        bp.set('Plane.dataProductType', DataProductType.IMAGE)
+        bp.add_attribute('Plane.dataRelease', 'RELEASE')
+        bp.add_attribute('Plane.metaRelease', 'RELEASE')
+        bp.set('Plane.provenance.project', 'AICO Science Archive')
+        bp.set('Plane.provenance.name', 'AICO Sky Camera image')
+        bp.set('Plane.provenance.reference', 'https://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/en/aico/')
+        bp.add_attribute('Plane.provenance.version', 'SWCREATE')
+
+        bp.set('Artifact.productType', ProductType.CALIBRATION)
         bp.set('Artifact.releaseType', 'data')
 
         bp.set('Chunk.time.axis.axis.ctype', 'TIME')
@@ -176,16 +161,8 @@ class SkyCam(cc.TelescopeMapping):
         bp.set('Chunk.time.axis.function.delta', 'get_time_axis_delta()')
         bp.set('Chunk.time.axis.function.refCoord.pix', '0.5')
         bp.set('Chunk.time.axis.function.refCoord.val', 'get_time_axis_val()')
-
-        bp.set('Chunk.observable.axis.axis.ctype', 'FLUX')
-        bp.set('Chunk.observable.axis.axis.cunit', 'COUNTS')
-        bp.set('Chunk.observable.axis.function.refCoord.pix', 1)
-
-        bp.set('Chunk.energy.axis.axis.ctype', 'WAVE')
-        bp.set('Chunk.energy.axis.axis.cunit', 'Angstrom')
-        bp.set('Chunk.energy.specsys', 'TOPOCENT')
-        bp.set('Chunk.energy.ssysobs', 'TOPOCENT')
-        bp.set('Chunk.energy.ssyssrc', 'TOPOCENT')
+        bp.add_attribute('Chunk.time.exposure', 'EXPOSURE')
+        bp.add_attribute('Chunk.time.resolution', 'EXPOSURE')
 
         # derived observations
         if AICOName.is_derived(self._storage_name.file_uri):
@@ -193,60 +170,65 @@ class SkyCam(cc.TelescopeMapping):
             bp.add_attribute('Observation.algorithm.name', 'PROCNAME')
 
     def get_geo_x(self, ext):
-        x, ign1, ign2 = self._get_geo()
+        x, ign1, ign2 = self._get_geo(ext)
         return x
 
     def get_geo_y(self, ext):
-        x, y, ign2 = self._get_geo()
+        x, y, ign2 = self._get_geo(ext)
         return y
 
     def get_geo_z(self, ext):
-        x, ign1, z = self._get_geo()
+        x, ign1, z = self._get_geo(ext)
         return z
-
-    def get_release_date(self, ext):
-        return self._get_clockval(ext)
-
-    def get_telescope_name(self, ext):
-        return 'AICO Skycam'
 
     def get_time_axis_delta(self, ext):
         exptime = self.get_time_exposure(ext)
         return exptime / (24.0 * 3600.0)
 
     def get_time_axis_val(self, ext):
-        return self._get_clockval(ext)
+        date_obs = self._headers[ext].get('DATE-OBS')
+        result = ac.get_datetime_mjd(date_obs)
+        if result is not None:
+            result = result.value
+        return result
 
     def get_time_exposure(self, ext):
-        exptime = mc.to_float(self._headers[ext].get('EXPTIME'))
-        ncombine = mc.to_float(self._headers[ext].get('NCOMBINE'))
-        if ncombine is not None:
-            # DB - approximation of exposure time for products (assume identical
-            # EXPTIME)
-            exptime *= ncombine
+        exptime = mc.to_float(self._headers[ext].get('EXPOSURE'))
+        if exptime is not None:
+            exptime = mc.convert_to_days(exptime)
         return exptime
 
-    def update(self, observation, file_info):
+    def update(self, file_info):
         """Called to fill multiple CAOM model elements and/or attributes
         (an n:n relationship between TDM attributes and CAOM attributes).
         """
-        super().update(observation, file_info)
+        super().update(file_info)
 
-        for plane in observation.planes.values():
+        for plane in self._observation.planes.values():
             for artifact in plane.artifacts.values():
                 if artifact.uri != self._storage_name.file_uri:
                     continue
 
                 for part in artifact.parts.values():
                     for chunk in part.chunks:
-                        if self._storage_name.is_skycam_image():
-                            chunk.energy_axis = None
+                        chunk.naxis = None
+                        chunk.time_axis = None
 
-        return observation
+        return self._observation
 
-    def _get_clockval(self, ext):
-        return ac.get_datetime_mjd(mc.make_datetime(self._headers[ext].get('CLOCKVAL')))
+    def _get_geo(self, ext):
+        def _x(value):
+            # e.g. long -79:30:22:99 lat +43:46:20:99
+            bits = value.split(':')
+            degrees = float(bits[0])
+            min = float(bits[1]) / 60.0
+            sec = float(bits[2]) / 3600.0
+            return degrees + min + sec
 
-    def _get_geo(self):
-        # TODO - replace with correct values
-        return ac.get_location(43.77414, -79.50736, 100.0)
+        site_lat = self._headers[ext].get('SITELAT')
+        site_long = self._headers[ext].get('SITELONG')
+        if site_lat is not None and site_long is not None:
+            return ac.get_location(_x(site_lat), _x(site_long), 100.0)
+
+    def _update_artifact(self, artifact):
+        pass

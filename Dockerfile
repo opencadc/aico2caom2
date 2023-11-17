@@ -1,5 +1,5 @@
-ARG PYTHON_VERSION=3.11
-FROM opencadc/matplotlib:${PYTHON_VERSION}-slim as builder
+ARG CADC_PYTHON_VERSION=3.11
+FROM opencadc/matplotlib:${CADC_PYTHON_VERSION}-slim as builder
 
 RUN apt-get update --no-install-recommends && \
     apt-get install -y build-essential git libcfitsio-bin && \
@@ -7,7 +7,7 @@ RUN apt-get update --no-install-recommends && \
 
 WORKDIR /usr/src/app
 
-ARG OPENCADC_BRANCH=master
+ARG OPENCADC_BRANCH=main
 ARG OPENCADC_REPO=opencadc
 
 RUN git clone https://github.com/${OPENCADC_REPO}/caom2tools.git && \
@@ -18,13 +18,13 @@ RUN git clone https://github.com/${OPENCADC_REPO}/caom2tools.git && \
 
 RUN pip install git+https://github.com/${OPENCADC_REPO}/caom2pipe@${OPENCADC_BRANCH}#egg=caom2pipe
 
-RUN pip install git+https://github.com/${OPENCADC_REPO}/vlass2caom2@${OPENCADC_BRANCH}#egg=vlass2caom2
+RUN pip install git+https://github.com/${OPENCADC_REPO}/aico2caom2@${OPENCADC_BRANCH}#egg=aico2caom2
 
-FROM python:${PYTHON_VERSION}-slim
+FROM python:${CADC_PYTHON_VERSION}-slim
 WORKDIR /usr/src/app
-ARG PYTHON_VERSION
+ARG CADC_PYTHON_VERSION
 
-COPY --from=builder /usr/local/lib/python${PYTHON_VERSION}/site-packages/ /usr/local/lib/python${PYTHON_VERSION}/site-packages/
+COPY --from=builder /usr/local/lib/python${CADC_PYTHON_VERSION}/site-packages/ /usr/local/lib/python${CADC_PYTHON_VERSION}/site-packages/
 COPY --from=builder /usr/local/bin/* /usr/local/bin/
 COPY --from=builder /usr/local/.config/* /usr/local/.config/
 

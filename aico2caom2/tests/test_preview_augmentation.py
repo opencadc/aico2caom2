@@ -65,63 +65,45 @@
 #  $Revision: 4 $
 #
 # ***********************************************************************
-#
-
-from mock import patch
-
-from aico2caom2 import fits2caom2_augmentation, main_app
-from caom2.diff import get_differences
-from caom2pipe import astro_composable as ac
-from caom2pipe import manage_composable as mc
-from caom2pipe import reader_composable as rdc
 
 import glob
 import os
 
-THIS_DIR = os.path.dirname(os.path.realpath(__file__))
-TEST_DATA_DIR = os.path.join(THIS_DIR, 'data')
-PLUGIN = os.path.join(os.path.dirname(THIS_DIR), 'main_app.py')
+from caom2pipe import manage_composable as mc
+from aico2caom2 import preview_augmentation, main_app
+
+TEST_FILES_DIR = '/test_files'
 
 
-def pytest_generate_tests(metafunc):
-    obs_id_list = glob.glob(f'{TEST_DATA_DIR}/*.fits.header')
-    metafunc.parametrize('test_name', obs_id_list)
+def test_visit(test_data_dir, test_config, tmp_path):
+    # this should result in two new artifacts being added to every plane:
+    # one for a thumbnail and one for preview
 
+    test_config.rejected_fqn = f'{tmp_path}/{test_config.rejected_file_name}'
+    test_observable = mc.Observable(test_config)
 
-@patch('caom2utils.data_util.get_local_headers_from_fits')
-def test_main_app(header_mock, test_config, test_name):
-    header_mock.side_effect = ac.make_headers_from_file
-    storage_name = main_app.AICOName(entry=test_name)
-    metadata_reader = rdc.FileMetadataReader()
-    metadata_reader.set(storage_name)
-    file_type = 'application/fits'
-    metadata_reader.file_info[storage_name.file_uri].file_type = file_type
-    kwargs = {
-        'storage_name': storage_name,
-        'metadata_reader': metadata_reader,
+    test_files = {
+        '2023_07_04__17_09_43-raw_v.expected.xml': ['2023_07_04__17_09_43-raw_v.fits'],
     }
-    expected_fqn = f'{test_name.replace(".fits.header", "")}.expected.xml'
-    expected = mc.read_obs_from_file(expected_fqn)
-    in_fqn = expected_fqn.replace('.expected', '.in')
-    actual_fqn = expected_fqn.replace('expected', 'actual')
-    if os.path.exists(actual_fqn):
-        os.unlink(actual_fqn)
-    observation = None
-    if os.path.exists(in_fqn):
-        observation = mc.read_obs_from_file(in_fqn)
-    try:
-        observation = fits2caom2_augmentation.visit(observation, **kwargs)
-        compare_result = get_differences(expected, observation)
-    except Exception as e:
-        if observation is not None:
-            mc.write_obs_to_file(observation, actual_fqn)
-        raise e
-    if compare_result is not None:
-        mc.write_obs_to_file(observation, actual_fqn)
-        compare_text = '\n'.join([r for r in compare_result])
-        msg = (
-            f'Differences found in observation {expected.observation_id}\n'
-            f'{compare_text}'
-        )
-        raise AssertionError(msg)
-    # assert False  # cause I want to see logging messages
+
+    kwargs = {
+        'working_directory': TEST_FILES_DIR,
+        'cadc_client': None,
+        'observable': test_observable,
+    }
+
+    for entry in glob.glob(f'{TEST_FILES_DIR}/*.png'):
+        os.unlink(entry)
+
+    for key, value in test_files.items():
+        obs = mc.read_obs_from_file(f'{test_data_dir}/{key}')
+        for f_name in value:
+            test_name = main_app.AICOName(f_name)
+            kwargs['storage_name'] = test_name
+            try:
+                ignore = preview_augmentation.visit(obs, **kwargs)
+                f_name_list = [test_name.prev_uri, test_name.thumb_uri]
+                for p in f_name_list:
+                    assert p in obs.planes[test_name.product_id].artifacts.keys(), f'missing {p}'
+            except Exception as e:
+                assert False, f'key {key} value {value} f_name {f_name} {str(e)}'

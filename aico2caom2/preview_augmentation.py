@@ -65,32 +65,55 @@
 #  $Revision: 4 $
 #
 # ***********************************************************************
-#
 
-from os.path import dirname, join, realpath
-from caom2pipe.manage_composable import Config, StorageName
-import pytest
+"""
+DB - 06-05-20
+Thumbnails and Previews are proprietary for science datasets.
 
-COLLECTION = 'AICO'
-SCHEME = 'cadc'
-PREVIEW_SCHEME = 'cadc'
+"""
 
+import matplotlib.pyplot as plt
+import numpy as np
 
-@pytest.fixture()
-def test_config():
-    config = Config()
-    config.collection = COLLECTION
-    config.preview_scheme = PREVIEW_SCHEME
-    config.scheme = SCHEME
-    config.logging_level = 'INFO'
-    StorageName.collection = config.collection
-    StorageName.preview_scheme = config.preview_scheme
-    StorageName.scheme = config.scheme
-    return config
+from astropy.io import fits
+from astropy.visualization import ZScaleInterval, SqrtStretch, ImageNormalize
+
+from caom2 import ReleaseType, ProductType
+from caom2pipe import manage_composable as mc
 
 
-@pytest.fixture()
-def test_data_dir():
-    this_dir = dirname(realpath(__file__))
-    fqn = join(this_dir, 'data')
-    return fqn
+class AICOPreview(mc.PreviewVisitor):
+    def __init__(self, mime_type, **kwargs):
+        super().__init__(ReleaseType.DATA, mime_type, **kwargs)
+        self._ext = 0
+
+    def generate_plots(self, obs_id):
+        count = 0
+        self._logger.info(f'Building preview and thumbnail with {self._science_fqn} for {obs_id}')
+        self._hdu_list = fits.open(self._science_fqn)
+
+        count += self._do_skycam()
+
+        if count == 2:
+            self.add_preview(self._storage_name.thumb_uri, self._storage_name.thumb, ProductType.THUMBNAIL)
+            self.add_preview(self._storage_name.prev_uri, self._storage_name.prev, ProductType.PREVIEW)
+            self.add_to_delete(self._thumb_fqn)
+            self.add_to_delete(self._preview_fqn)
+        return count
+
+    def _do_skycam(self):
+        image_data = self._hdu_list[self._ext].data
+        norm = ImageNormalize(image_data, interval=ZScaleInterval(), stretch=SqrtStretch())
+        plt.imshow(image_data, cmap='gray', norm=norm)
+        plt.gca().invert_yaxis()
+        plt.axis('off')
+        with np.errstate(invalid='ignore'):
+            plt.savefig(self._preview_fqn, dpi=200, bbox_inches='tight', pad_inches=0, format='png')
+        count = 1
+        count += self._gen_thumbnail()
+        return count
+
+
+def visit(observation, **kwargs):
+    previewer = AICOPreview(mime_type='image/png', **kwargs)
+    return previewer.visit(observation)

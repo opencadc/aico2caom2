@@ -1,0 +1,77 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<caom2:Observation xmlns:caom2="http://www.opencadc.org/caom2/xml/v2.4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="caom2:SimpleObservation" caom2:id="404f9736-fb5e-4ee6-893c-0638a86a2ff5">
+  <caom2:collection>AICO</caom2:collection>
+  <caom2:observationID>2023_07_04__17_08_51-raw_v</caom2:observationID>
+  <caom2:metaRelease>2023-07-04T21:08:51.215900</caom2:metaRelease>
+  <caom2:algorithm>
+    <caom2:name>exposure</caom2:name>
+  </caom2:algorithm>
+  <caom2:type>object</caom2:type>
+  <caom2:intent>calibration</caom2:intent>
+  <caom2:target>
+    <caom2:name>weather image</caom2:name>
+  </caom2:target>
+  <caom2:telescope>
+    <caom2:name>All Sky Camera</caom2:name>
+    <caom2:geoLocationX>920184.9715486484</caom2:geoLocationX>
+    <caom2:geoLocationY>-4520385.693632458</caom2:geoLocationY>
+    <caom2:geoLocationZ>4389920.559756182</caom2:geoLocationZ>
+  </caom2:telescope>
+  <caom2:instrument>
+    <caom2:name>All Sky Camera</caom2:name>
+  </caom2:instrument>
+  <caom2:planes>
+    <caom2:plane caom2:id="6f65cd72-bd70-450d-a87e-d35f77b13b1b">
+      <caom2:productID>2023_07_04__17_08_51-raw_v</caom2:productID>
+      <caom2:metaRelease>2023-07-04T17:08:49.468800</caom2:metaRelease>
+      <caom2:dataRelease>2023-07-04T17:08:49.468800</caom2:dataRelease>
+      <caom2:dataProductType>image</caom2:dataProductType>
+      <caom2:calibrationLevel>1</caom2:calibrationLevel>
+      <caom2:provenance>
+        <caom2:name>AICO Sky Camera image</caom2:name>
+        <caom2:version>SKYWATCH,  Version  4.3.10 build 141,  3/28/2022</caom2:version>
+        <caom2:project>AICO Science Archive</caom2:project>
+        <caom2:producer>Carswell Astronomical Observatory</caom2:producer>
+        <caom2:reference>https://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/en/aico/</caom2:reference>
+      </caom2:provenance>
+      <caom2:artifacts>
+        <caom2:artifact caom2:id="6a7b16db-6784-4642-9773-365b4c4509eb">
+          <caom2:uri>cadc:AICO/2023_07_04__17_08_51-raw_v.fits</caom2:uri>
+          <caom2:productType>calibration</caom2:productType>
+          <caom2:releaseType>data</caom2:releaseType>
+          <caom2:contentType>application/fits</caom2:contentType>
+          <caom2:contentLength>4256</caom2:contentLength>
+          <caom2:contentChecksum>md5:e9c1913412c9f4f0466c66235074ad98</caom2:contentChecksum>
+          <caom2:parts>
+            <caom2:part caom2:id="c6ecb10f-9cd9-46f5-9966-6073c4d98c9c">
+              <caom2:name>0</caom2:name>
+              <caom2:chunks>
+                <caom2:chunk caom2:id="1ce5ba45-52b3-46ff-b1f0-c9039275c34b">
+                  <caom2:time>
+                    <caom2:axis>
+                      <caom2:axis>
+                        <caom2:ctype>TIME</caom2:ctype>
+                        <caom2:cunit>d</caom2:cunit>
+                      </caom2:axis>
+                      <caom2:function>
+                        <caom2:naxis>1</caom2:naxis>
+                        <caom2:delta>9.37714334705075e-15</caom2:delta>
+                        <caom2:refCoord>
+                          <caom2:pix>0.5</caom2:pix>
+                          <caom2:val>60129.71446144445</caom2:val>
+                        </caom2:refCoord>
+                      </caom2:function>
+                    </caom2:axis>
+                    <caom2:timesys>UTC</caom2:timesys>
+                    <caom2:exposure>7e-05</caom2:exposure>
+                    <caom2:resolution>7e-05</caom2:resolution>
+                  </caom2:time>
+                </caom2:chunk>
+              </caom2:chunks>
+            </caom2:part>
+          </caom2:parts>
+        </caom2:artifact>
+      </caom2:artifacts>
+    </caom2:plane>
+  </caom2:planes>
+</caom2:Observation>

@@ -11,12 +11,12 @@ resource_id: ivo://cadc.nrc.ca/sc2repo
 # operational value is ivo://cadc.nrc.ca/ams/aico
 # - queries entries on sc2.canfar.net
 tap_id: ivo://cadc.nrc.ca/sc2tap
-storage_inventory_resource_id: ivo://cadc.nrc.ca/cadc/minoc
+storage_inventory_resource_id: ivo://cadc.nrc.ca/uvic/minoc
 storage_inventory_tap_resource_id: ivo://cadc.nrc.ca/global/luskan
 # file that contains the list of entries to process
 todo_file_name: todo.txt
 data_sources:
-  - vos:test
+  - /data
 data_source_extensions:
   - .fits
 # values True False
@@ -24,6 +24,18 @@ data_source_extensions:
 # .fits, .gz, .json endings as defining the work to be 
 # done.
 use_local_files: True
+# if the 'store' task type is listed, ensure the file being stored
+# has a different md5 checksum than the file at CADC before 
+# transferring the file.
+store_modified_files_only: True
+# If cleanup_files_when_storing is True, and the STORE task_type is
+# specified, move files that are successfully transferred to CADC
+# to the cleanup_success_destination when the transfer is done, and
+# to the cleanup_failure_destination when the transfer fails, or the
+# file fails FITS verification.
+cleanup_files_when_storing: False
+cleanup_success_destination: /data/success
+cleanup_failure_destination: /data/failure
 # values DEBUG INFO WARNING ERROR
 logging_level: DEBUG
 # values True False
@@ -82,4 +94,6 @@ interval: 600
 # - ingest - read the headers, write the xml to the endpoint found by resource_id
 # - modify - create a footprint and previews for an existing CAOM model record
 task_types: 
+  - store
   - ingest
+  - modify
