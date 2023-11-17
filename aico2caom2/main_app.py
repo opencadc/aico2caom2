@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # ***********************************************************************
 # ******************  CANADIAN ASTRONOMY DATA CENTRE  *******************
 # *************  CENTRE CANADIEN DE DONNÉES ASTRONOMIQUES  **************
@@ -68,7 +67,7 @@
 #
 
 """
-This module implements the ObsBlueprint mapping, as well as the workflow 
+This module implements the ObsBlueprint mapping, as well as the workflow
 entry point that executes the workflow.
 """
 
@@ -106,8 +105,8 @@ class AICOName(mc.StorageName):
 
 
 class AICOMapping(cc.TelescopeMapping):
-    def __init__(self, storage_name, headers, clients, observable, observation):
-        super().__init__(storage_name, headers, clients, observable, observation)
+    def __init__(self, storage_name, headers, clients, observable, observation, config):
+        super().__init__(storage_name, headers, clients, observable, observation, config)
 
     def accumulate_blueprint(self, bp):
         """Configure the telescope-specific ObsBlueprint at the CAOM model
@@ -123,10 +122,13 @@ class AICOMapping(cc.TelescopeMapping):
         super().update(file_info)
         return self._observation
 
+    def _update_artifact(self, artifact):
+        pass
+
 
 class SkyCam(cc.TelescopeMapping):
-    def __init__(self, storage_name, headers, clients, observable, observation):
-        super().__init__(storage_name, headers, clients, observable, observation)
+    def __init__(self, storage_name, headers, clients, observable, observation, config):
+        super().__init__(storage_name, headers, clients, observable, observation, config)
 
     def configure_axes(self, bp):
         bp.configure_time_axis(1)
@@ -225,7 +227,8 @@ class SkyCam(cc.TelescopeMapping):
 
         site_lat = self._headers[ext].get('SITELAT')
         site_long = self._headers[ext].get('SITELONG')
-        self._logger.error(f'{site_long} {site_lat}')
         if site_lat is not None and site_long is not None:
             return ac.get_location(_x(site_lat), _x(site_long), 100.0)
-    
+
+    def _update_artifact(self, artifact):
+        pass

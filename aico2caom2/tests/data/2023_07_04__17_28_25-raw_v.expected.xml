@@ -23,8 +23,8 @@
   <caom2:planes>
     <caom2:plane caom2:id="ce308f45-a1fa-4386-a5ec-cc46f042bc8d">
       <caom2:productID>2023_07_04__17_28_25-raw_v</caom2:productID>
-      <caom2:metaRelease>2023-07-04T21:28:25.657</caom2:metaRelease>
-      <caom2:dataRelease>2023-07-04T21:28:25.657</caom2:dataRelease>
+      <caom2:metaRelease>2023-07-04T17:28:23.894400</caom2:metaRelease>
+      <caom2:dataRelease>2023-07-04T17:28:23.894400</caom2:dataRelease>
       <caom2:dataProductType>image</caom2:dataProductType>
       <caom2:calibrationLevel>1</caom2:calibrationLevel>
       <caom2:provenance>
@@ -40,7 +40,7 @@
           <caom2:productType>calibration</caom2:productType>
           <caom2:releaseType>data</caom2:releaseType>
           <caom2:contentType>application/fits</caom2:contentType>
-          <caom2:contentLength>4175</caom2:contentLength>
+          <caom2:contentLength>4256</caom2:contentLength>
           <caom2:contentChecksum>md5:90ff4a290e5e657547a3efbb31a87f38</caom2:contentChecksum>
           <caom2:parts>
             <caom2:part caom2:id="2f03f97b-5ad5-43bc-9a0e-022a16c62596">

@@ -44,9 +44,10 @@ WINSPEED=                  0.0 /Wind speed, unit is km/h
 WINDIR  =                  0.0 /Wind direction, North 0deg, East 90d            
 IMGTYPE = 'STD_IMAGE         ' /Image type, like flat, bias or dark             
 BAYERIND=                    4 /Bayer color Index                               
-DETECTOR= 'ZWO ASI183MC Pro'   / the detector name                              
+DETECTOR= 'ZWO ASI183MC Pro'   / The detector name                              
 OBSERVAT= 'AICO    '                                                            
 OBJECT  = 'weather image'                                                       
 OBSTYPE = 'object  '                                                            
+RELEASE = '2023-07-04T17:09:41.498400' / When the dataset becomes public        
 COMMENT Gain=0                                                                  
 HISTORY none                                                                    

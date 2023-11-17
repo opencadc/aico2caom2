@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # ***********************************************************************
 # ******************  CANADIAN ASTRONOMY DATA CENTRE  *******************
 # *************  CENTRE CANADIEN DE DONNÉES ASTRONOMIQUES  **************
@@ -99,6 +98,7 @@ def test_main_app(header_mock, test_config, test_name):
     kwargs = {
         'storage_name': storage_name,
         'metadata_reader': metadata_reader,
+        'config': test_config,
     }
     expected_fqn = f'{test_name.replace(".fits.header", "")}.expected.xml'
     in_fqn = expected_fqn.replace('.expected', '.in')
