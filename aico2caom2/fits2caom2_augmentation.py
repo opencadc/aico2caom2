@@ -80,9 +80,13 @@ class AicoFits2caom2Visitor(cc.Fits2caom2Visitor):
 
     def _get_mapping(self, headers):
         if True:  # TODO add a test to the condition
-            return main_app.SkyCam(self._storage_name, headers, self._clients, self._observable, self._observation, self._config)
+            return main_app.SkyCam(
+                self._storage_name, headers, self._clients, self._observable, self._observation, self._config
+            )
         else:
-            return main_app.AICOMapping(self._storage_name, headers, self._clients, self._observable, self._observation, self._config)
+            return main_app.AICOMapping(
+                self._storage_name, headers, self._clients, self._observable, self._observation, self._config
+            )
 
 
 def visit(observation, **kwargs):

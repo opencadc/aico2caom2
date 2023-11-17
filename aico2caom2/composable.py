@@ -114,8 +114,7 @@ def run():
 
 
 def _run_incremental():
-    """Uses a state file with a timestamp to identify the work to be done.
-    """
+    """Uses a state file with a timestamp to identify the work to be done."""
     return run_by_state(
         name_builder=EntryBuilder(main_app.AICOName), meta_visitors=META_VISITORS, data_visitors=DATA_VISITORS
     )

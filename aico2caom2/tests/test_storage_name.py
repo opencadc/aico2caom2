@@ -72,7 +72,7 @@ from aico2caom2 import AICOName
 
 def test_is_valid():
     assert AICOName('anything').is_valid()
-    
+
 
 def test_storage_name(test_config):
     test_obs_id = 'TEST_OBS_ID'

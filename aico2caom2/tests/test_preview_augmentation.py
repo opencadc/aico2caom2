@@ -74,8 +74,8 @@ from aico2caom2 import preview_augmentation, main_app
 
 TEST_FILES_DIR = '/test_files'
 
-def test_visit(test_data_dir, test_config, tmp_path):
 
+def test_visit(test_data_dir, test_config, tmp_path):
     # this should result in two new artifacts being added to every plane:
     # one for a thumbnail and one for preview
 
@@ -83,7 +83,7 @@ def test_visit(test_data_dir, test_config, tmp_path):
     test_observable = mc.Observable(test_config)
 
     test_files = {
-        '2023_07_04__17_09_43-raw_v.expected.xml': [ '2023_07_04__17_09_43-raw_v.fits'],
+        '2023_07_04__17_09_43-raw_v.expected.xml': ['2023_07_04__17_09_43-raw_v.fits'],
     }
 
     kwargs = {
