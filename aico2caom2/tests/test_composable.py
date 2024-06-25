@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # ***********************************************************************
 # ******************  CANADIAN ASTRONOMY DATA CENTRE  *******************
 # *************  CENTRE CANADIEN DE DONNÉES ASTRONOMIQUES  **************
@@ -82,7 +81,7 @@ def test_run_by_state():
 @patch('cadcutils.net.ws.WsCapabilities.get_access_url')
 @patch('caom2pipe.execute_composable.OrganizeExecutes.do_one')
 def test_run(run_mock, access_mock, test_config, tmp_path):
-    run_mock.return_value = 0
+    run_mock.return_value = (0, None)
     access_mock.return_value = 'https://localhost'
     test_f_id = 'test_file_id'
     test_f_name = f'{test_f_id}.fits'
@@ -91,6 +90,8 @@ def test_run(run_mock, access_mock, test_config, tmp_path):
         os.chdir(tmp_path.as_posix())
         test_config.change_working_directory(tmp_path.as_posix())
         test_config.proxy_file_name = 'test_proxy.fqn'
+        test_config.task_types = [mc.TaskType.INGEST]
+        test_config.logging_level = 'INFO'
         test_config.write_to_file(test_config)
 
         with open(test_config.proxy_fqn, 'w') as f:
