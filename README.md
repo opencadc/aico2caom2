@@ -81,8 +81,8 @@ https://github.com/opencadc/collection2caom2/wiki/config.yml.
 1. In the main branch of this repository, find the scripts directory, and copy the files `aico_run.sh`  and `aico_run_incremental.sh` to the working directory. e.g.:
 
    ```
-   wget https://raw.github.com/opencadc/aico2caom2/aico/scripts/aico_run.sh
-   wget https://raw.github.com/opencadc/aico2caom2/aico/scripts/aico_run_incremental.sh
+   wget https://raw.github.com/opencadc/aico2caom2/scripts/aico_run.sh
+   wget https://raw.github.com/opencadc/aico2caom2/scripts/aico_run_incremental.sh
    ```
 
 1. Ensure the scripts are executable:
