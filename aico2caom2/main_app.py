@@ -2,7 +2,7 @@
 # ******************  CANADIAN ASTRONOMY DATA CENTRE  *******************
 # *************  CENTRE CANADIEN DE DONNÉES ASTRONOMIQUES  **************
 #
-#  (c) 2023.                            (c) 2023.
+#  (c) 2025.                            (c) 2025.
 #  Government of Canada                 Gouvernement du Canada
 #  National Research Council            Conseil national de recherches
 #  Ottawa, Canada, K1A 0R6              Ottawa, Canada, K1A 0R6
@@ -67,8 +67,7 @@
 #
 
 """
-This module implements the ObsBlueprint mapping, as well as the workflow
-entry point that executes the workflow.
+This module implements the ObsBlueprint mapping, as well as the workflow entry point that executes the workflow.
 """
 
 from os.path import basename
@@ -90,8 +89,8 @@ class AICOName(mc.StorageName):
 
     AICO_NAME_PATTERN = '*'
 
-    def __init__(self, entry):
-        super().__init__(file_name=basename(entry.replace('.header', '')), source_names=[entry])
+    def __init__(self, source_names):
+        super().__init__(source_names=source_names)
 
     def is_derived(self):
         return False
@@ -104,9 +103,7 @@ class AICOName(mc.StorageName):
         return True
 
 
-class AICOMapping(cc.TelescopeMapping):
-    def __init__(self, storage_name, headers, clients, observable, observation, config):
-        super().__init__(storage_name, headers, clients, observable, observation, config)
+class AICOMapping(cc.TelescopeMapping2):
 
     def accumulate_blueprint(self, bp):
         """Configure the telescope-specific ObsBlueprint at the CAOM model
@@ -126,9 +123,7 @@ class AICOMapping(cc.TelescopeMapping):
         pass
 
 
-class SkyCam(cc.TelescopeMapping):
-    def __init__(self, storage_name, headers, clients, observable, observation, config):
-        super().__init__(storage_name, headers, clients, observable, observation, config)
+class SkyCam(cc.TelescopeMapping2):
 
     def configure_axes(self, bp):
         bp.configure_time_axis(1)
@@ -198,23 +193,11 @@ class SkyCam(cc.TelescopeMapping):
             exptime = mc.convert_to_days(exptime)
         return exptime
 
-    def update(self, file_info):
-        """Called to fill multiple CAOM model elements and/or attributes
-        (an n:n relationship between TDM attributes and CAOM attributes).
-        """
-        super().update(file_info)
-
-        for plane in self._observation.planes.values():
-            for artifact in plane.artifacts.values():
-                if artifact.uri != self._storage_name.file_uri:
-                    continue
-
-                for part in artifact.parts.values():
-                    for chunk in part.chunks:
-                        chunk.naxis = None
-                        chunk.time_axis = None
-
-        return self._observation
+    def _update_artifact(self, artifact):
+        for part in artifact.parts.values():
+            for chunk in part.chunks:
+                chunk.naxis = None
+                chunk.time_axis = None
 
     def _get_geo(self, ext):
         def _x(value):
@@ -229,6 +212,3 @@ class SkyCam(cc.TelescopeMapping):
         site_long = self._headers[ext].get('SITELONG')
         if site_lat is not None and site_long is not None:
             return ac.get_location(_x(site_lat), _x(site_long), 100.0)
-
-    def _update_artifact(self, artifact):
-        pass

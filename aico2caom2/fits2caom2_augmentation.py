@@ -2,7 +2,7 @@
 # ******************  CANADIAN ASTRONOMY DATA CENTRE  *******************
 # *************  CENTRE CANADIEN DE DONNÉES ASTRONOMIQUES  **************
 #
-#  (c) 2023.                            (c) 2023.
+#  (c) 2025.                            (c) 2025.
 #  Government of Canada                 Gouvernement du Canada
 #  National Research Council            Conseil national de recherches
 #  Ottawa, Canada, K1A 0R6              Ottawa, Canada, K1A 0R6
@@ -74,18 +74,16 @@ from aico2caom2 import main_app
 __all__ = ['AicoFits2caom2Visitor']
 
 
-class AicoFits2caom2Visitor(cc.Fits2caom2Visitor):
-    def __init__(self, observation, **kwargs):
-        super().__init__(observation, **kwargs)
+class AicoFits2caom2Visitor(cc.Fits2caom2VisitorRunnerMeta):
 
-    def _get_mapping(self, headers, _):
+    def _get_mapping(self, dest_uri):
         if True:  # TODO add a test to the condition
             return main_app.SkyCam(
-                self._storage_name, headers, self._clients, self._observable, self._observation, self._config
+                self._storage_name, self._clients, self._reporter, self._observation, self._config
             )
         else:
             return main_app.AICOMapping(
-                self._storage_name, headers, self._clients, self._observable, self._observation, self._config
+                self._storage_name, self._clients, self._reporter, self._observation, self._config
             )
 
 

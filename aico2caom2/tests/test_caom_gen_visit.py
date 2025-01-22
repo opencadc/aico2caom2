@@ -2,7 +2,7 @@
 # ******************  CANADIAN ASTRONOMY DATA CENTRE  *******************
 # *************  CENTRE CANADIEN DE DONNÉES ASTRONOMIQUES  **************
 #
-#  (c) 2023.                            (c) 2023.
+#  (c) 2025.                            (c) 2025.
 #  Government of Canada                 Gouvernement du Canada
 #  National Research Council            Conseil national de recherches
 #  Ottawa, Canada, K1A 0R6              Ottawa, Canada, K1A 0R6
@@ -66,13 +66,13 @@
 # ***********************************************************************
 #
 
-from mock import patch
+from mock import Mock
 
 from aico2caom2 import fits2caom2_augmentation, main_app
+from cadcdata import FileInfo
 from caom2.diff import get_differences
-from caom2pipe import astro_composable as ac
+from caom2utils.data_util import get_local_file_headers, get_local_file_info
 from caom2pipe import manage_composable as mc
-from caom2pipe import reader_composable as rdc
 
 import glob
 import os
@@ -87,18 +87,18 @@ def pytest_generate_tests(metafunc):
     metafunc.parametrize('test_name', obs_id_list)
 
 
-@patch('caom2utils.data_util.get_local_headers_from_fits')
-def test_main_app(header_mock, test_config, test_name):
-    header_mock.side_effect = ac.make_headers_from_file
-    storage_name = main_app.AICOName(entry=test_name)
-    metadata_reader = rdc.FileMetadataReader()
-    metadata_reader.set(storage_name)
-    file_type = 'application/fits'
-    metadata_reader.file_info[storage_name.file_uri].file_type = file_type
+def test_main_app(test_config, test_name, tmp_path):
+    test_config.change_working_directory(tmp_path.as_posix())
+    storage_name = main_app.AICOName(source_names=[test_name])
+    storage_name.metadata[storage_name.file_uri] = get_local_file_headers(test_name)
+    storage_name.file_info[storage_name.file_uri] = get_local_file_info(test_name)
+    storage_name.file_info[storage_name.file_uri].file_type = 'application/fits'
+    test_reporter = mc.ExecutionReporter2(test_config)
     kwargs = {
+        'clients': Mock(),
         'storage_name': storage_name,
-        'metadata_reader': metadata_reader,
         'config': test_config,
+        'reporter': test_reporter,
     }
     expected_fqn = f'{test_name.replace(".fits.header", "")}.expected.xml'
     in_fqn = expected_fqn.replace('.expected', '.in')
