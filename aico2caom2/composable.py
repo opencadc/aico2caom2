@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
 # ***********************************************************************
 # ******************  CANADIAN ASTRONOMY DATA CENTRE  *******************
 # *************  CENTRE CANADIEN DE DONNÉES ASTRONOMIQUES  **************
 #
-#  (c) 2023.                            (c) 2023.
+#  (c) 2025.                            (c) 2025.
 #  Government of Canada                 Gouvernement du Canada
 #  National Research Council            Conseil national de recherches
 #  Ottawa, Canada, K1A 0R6              Ottawa, Canada, K1A 0R6
@@ -68,7 +67,7 @@
 #
 
 """
-Implements the default entry point functions for the workflow 
+Implements the default entry point functions for the workflow
 application.
 
 'run' executes based on either provided lists of work, or files on disk.
@@ -79,8 +78,7 @@ import logging
 import sys
 import traceback
 
-from caom2pipe.name_builder_composable import EntryBuilder
-from caom2pipe.run_composable import run_by_state, run_by_todo
+from caom2pipe.run_composable import run_by_state_runner_meta, run_by_todo_runner_meta
 from aico2caom2 import fits2caom2_augmentation, main_app, preview_augmentation
 
 
@@ -93,11 +91,10 @@ def _run():
     """
     Uses a todo file to identify the work to be done.
 
-    :return 0 if successful, -1 if there's any sort of failure. Return status
-        is used by airflow for task instance management and reporting.
+    :return 0 if successful, -1 if there's any sort of failure.
     """
-    return run_by_todo(
-        name_builder=EntryBuilder(main_app.AICOName), meta_visitors=META_VISITORS, data_visitors=DATA_VISITORS
+    return run_by_todo_runner_meta(
+        meta_visitors=META_VISITORS, data_visitors=DATA_VISITORS, storage_name_ctor=main_app.AICOName
     )
 
 
@@ -115,8 +112,8 @@ def run():
 
 def _run_incremental():
     """Uses a state file with a timestamp to identify the work to be done."""
-    return run_by_state(
-        name_builder=EntryBuilder(main_app.AICOName), meta_visitors=META_VISITORS, data_visitors=DATA_VISITORS
+    return run_by_state_runner_meta(
+        meta_visitors=META_VISITORS, data_visitors=DATA_VISITORS, storage_name_ctor=main_app.AICOName
     )
 
 

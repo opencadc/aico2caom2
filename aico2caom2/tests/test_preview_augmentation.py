@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
 # ***********************************************************************
 # ******************  CANADIAN ASTRONOMY DATA CENTRE  *******************
 # *************  CENTRE CANADIEN DE DONNÉES ASTRONOMIQUES  **************
 #
-#  (c) 2023.                            (c) 2023.
+#  (c) 2025.                            (c) 2025.
 #  Government of Canada                 Gouvernement du Canada
 #  National Research Council            Conseil national de recherches
 #  Ottawa, Canada, K1A 0R6              Ottawa, Canada, K1A 0R6
@@ -80,7 +79,6 @@ def test_visit(test_data_dir, test_config, tmp_path):
     # one for a thumbnail and one for preview
 
     test_config.rejected_fqn = f'{tmp_path}/{test_config.rejected_file_name}'
-    test_observable = mc.Observable(test_config)
 
     test_files = {
         '2023_07_04__17_09_43-raw_v.expected.xml': ['2023_07_04__17_09_43-raw_v.fits'],
@@ -89,7 +87,6 @@ def test_visit(test_data_dir, test_config, tmp_path):
     kwargs = {
         'working_directory': TEST_FILES_DIR,
         'cadc_client': None,
-        'observable': test_observable,
     }
 
     for entry in glob.glob(f'{TEST_FILES_DIR}/*.png'):
@@ -98,10 +95,10 @@ def test_visit(test_data_dir, test_config, tmp_path):
     for key, value in test_files.items():
         obs = mc.read_obs_from_file(f'{test_data_dir}/{key}')
         for f_name in value:
-            test_name = main_app.AICOName(f_name)
+            test_name = main_app.AICOName([f_name])
             kwargs['storage_name'] = test_name
             try:
-                ignore = preview_augmentation.visit(obs, **kwargs)
+                obs = preview_augmentation.visit(obs, **kwargs)
                 f_name_list = [test_name.prev_uri, test_name.thumb_uri]
                 for p in f_name_list:
                     assert p in obs.planes[test_name.product_id].artifacts.keys(), f'missing {p}'
