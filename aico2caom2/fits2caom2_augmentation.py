@@ -76,15 +76,15 @@ __all__ = ['AicoFits2caom2Visitor']
 
 class AicoFits2caom2Visitor(cc.Fits2caom2VisitorRunnerMeta):
 
-    def _get_mapping(self, dest_uri):
+    def _get_mappings(self, dest_uri):
         if True:  # TODO add a test to the condition
-            return main_app.SkyCam(
+            return [main_app.SkyCam(
                 self._storage_name, self._clients, self._reporter, self._observation, self._config
-            )
+            )]
         else:
-            return main_app.AICOMapping(
+            return [main_app.AICOMapping(
                 self._storage_name, self._clients, self._reporter, self._observation, self._config
-            )
+            )]
 
 
 def visit(observation, **kwargs):
